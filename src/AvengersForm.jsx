@@ -292,7 +292,9 @@ export default function AvengersForm() {
             <FotosUpload fotos={form.fotos} onChange={setVal("fotos")} />
           </Field>
 
-          <Field label="Audio de presentación" hint="Graba un audio corto presentándote o explicando tu marca, directo desde el navegador.">
+          <Field label="Audio contando quién eres y tu marca personal"
+            hint="Graba un audio detallado, directo desde el navegador: quién eres, tu trayectoria, y qué quieres proyectar con tu marca personal. Mientras más contexto des, mejor entenderá el equipo de media tu voz y tono."
+            required>
             <AudioRecorder audio={form.audio} onChange={setVal("audio")} />
           </Field>
 

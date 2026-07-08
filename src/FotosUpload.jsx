@@ -31,7 +31,7 @@ export default function FotosUpload({ fotos, onChange }) {
     try {
       const uploaded = [];
       for (const file of files) {
-        const blob = await uploadPresigned(file.name, file, {
+        const blob = await uploadPresigned(`${crypto.randomUUID()}-${file.name}`, file, {
           access: "public",
           handleUploadUrl: "/api/upload",
         });

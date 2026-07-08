@@ -57,7 +57,7 @@ export default function AudioRecorder({ audio, onChange }) {
     setUploading(true);
     try {
       const ext = extensionFor(blob.type);
-      const result = await uploadPresigned(`audio-presentacion-${Date.now()}.${ext}`, blob, {
+      const result = await uploadPresigned(`audio-presentacion-${crypto.randomUUID()}.${ext}`, blob, {
         access: "public",
         contentType: blob.type,
         handleUploadUrl: "/api/upload",
