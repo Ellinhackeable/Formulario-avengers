@@ -1,6 +1,7 @@
 import { useState } from "react";
 import FotosUpload from "./FotosUpload.jsx";
 import AudioRecorder from "./AudioRecorder.jsx";
+import { supabase } from "./supabaseClient.js";
 
 const YELLOW = "#E9FF7B";
 const BLACK = "#0A0A0A";
@@ -192,10 +193,74 @@ function Summary({ data }) {
   );
 }
 
+async function submitForm(data) {
+  const submissionId = crypto.randomUUID();
+  const { error } = await supabase
+    .from("avengers_submissions")
+    .insert({
+      id: submissionId,
+      nombre: data.nombre,
+      plataformas: data.plataformas,
+      instagram: data.instagram || null,
+      tiktok: data.tiktok || null,
+      youtube: data.youtube || null,
+      linkedin: data.linkedin || null,
+      otra_plataforma: data.otraPlataforma || null,
+      frecuencia: data.frecuencia || null,
+      cinco_palabras: data.cincoPalabras || null,
+
+      colores_si: data.coloresSi || null,
+      colores_no: data.coloresNo || null,
+      tipografia_si: data.tipografiaSi || null,
+      tipografia_no: data.tipografiaNo || null,
+      referentes_portadas: data.referentesPortadas || null,
+      look_feel: data.lookFeel || null,
+      audio_url: data.audio?.url || null,
+      edicion_si: data.edicionSi || null,
+      edicion_no: data.edicionNo || null,
+      animaciones_si: data.animacionesSi || null,
+      animaciones_no: data.animacionesNo || null,
+
+      nicho: data.nicho || null,
+      temas: data.temas || null,
+      temas_excluidos: data.temasExcluidos || null,
+      referentes_sheet: data.referentesSheet || null,
+
+      tiene_filmmaker: data.tieneFilmmaker || null,
+      tiene_editor: data.tieneEditor || null,
+      tiene_disenador: data.tieneDiseñador || null,
+      equipo_contacto: data.equipoContacto || null,
+    });
+
+  if (error) throw error;
+
+  if (data.fotos.length > 0) {
+    const { error: fotosError } = await supabase.from("avengers_submission_fotos").insert(
+      data.fotos.map((f) => ({ submission_id: submissionId, url: f.url, name: f.name }))
+    );
+    if (fotosError) throw fotosError;
+  }
+}
+
 export default function AvengersForm() {
   const [current, setCurrent] = useState("identidad");
   const [form, setForm] = useState(initialForm);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await submitForm(form);
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError("No se pudo enviar el formulario. Intenta de nuevo. " + (err.message || ""));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
   const setVal = (key) => (val) => setForm(f => ({ ...f, [key]: val }));
@@ -385,6 +450,20 @@ export default function AvengersForm() {
     }
   };
 
+  if (submitted) {
+    return (
+      <div style={{ minHeight: "100vh", background: LIGHT, fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+        <div style={{ textAlign: "center", maxWidth: 420 }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>¡Formulario enviado!</h1>
+          <p style={{ color: GRAY, fontSize: 14, lineHeight: 1.6 }}>
+            Gracias, {form.nombre || "Avenger"}. El equipo de media de 30X revisará tus respuestas y se pondrá en contacto contigo.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: "100vh", background: LIGHT, fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", padding: "0 0 60px 0" }}>
       <style>{RESPONSIVE_CSS}</style>
@@ -411,7 +490,7 @@ export default function AvengersForm() {
         </div>
 
         {/* Navigation */}
-        {current !== "resumen" && (
+        {current !== "resumen" ? (
           <div className="af-nav" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
             <button className="af-nav-btn" onClick={prev} disabled={currentIdx === 0} style={{
               padding: "12px 24px", borderRadius: 8, border: `1.5px solid ${BORDER}`,
@@ -427,6 +506,29 @@ export default function AvengersForm() {
             }}>
               {currentIdx === steps.length - 2 ? "Ver Resumen →" : "Siguiente →"}
             </button>
+          </div>
+        ) : (
+          <div className="af-nav" style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 10, marginTop: 20 }}>
+            {submitError && (
+              <div style={{ background: "#FFF0F0", border: "1.5px solid #f0a0a0", borderRadius: 8, padding: 12, fontSize: 13, color: "#a00" }}>
+                {submitError}
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button className="af-nav-btn" onClick={prev} disabled={submitting} style={{
+                padding: "12px 24px", borderRadius: 8, border: `1.5px solid ${BORDER}`,
+                background: "white", cursor: submitting ? "not-allowed" : "pointer",
+                fontSize: 14, color: BLACK, fontWeight: 600,
+              }}>← Anterior</button>
+
+              <button className="af-nav-btn" onClick={handleSubmit} disabled={submitting} style={{
+                padding: "12px 28px", borderRadius: 8, border: "none",
+                background: YELLOW, cursor: submitting ? "not-allowed" : "pointer",
+                fontSize: 14, color: BLACK, fontWeight: 800, opacity: submitting ? 0.7 : 1,
+              }}>
+                {submitting ? "Enviando…" : "Enviar formulario ✓"}
+              </button>
+            </div>
           </div>
         )}
       </div>
