@@ -33,6 +33,20 @@ const initialForm = {
 
 const PLATAFORMAS = ["Instagram", "TikTok", "YouTube Shorts", "LinkedIn"];
 
+const RESPONSIVE_CSS = `
+  @media (max-width: 640px) {
+    .af-header { padding: 12px 16px !important; gap: 10px !important; }
+    .af-container { padding: 0 14px !important; }
+    .af-steps { gap: 6px !important; padding: 20px 0 16px !important; }
+    .af-step-circle { width: 28px !important; height: 28px !important; font-size: 12px !important; }
+    .af-step-label { font-size: 9px !important; }
+    .af-card { padding: 20px 16px !important; border-radius: 12px !important; }
+    .af-grid-2 { grid-template-columns: 1fr !important; }
+    .af-nav { flex-wrap: wrap !important; gap: 10px !important; }
+    .af-nav-btn { flex: 1 1 auto !important; padding: 12px 16px !important; }
+  }
+`;
+
 function Tag({ children, active, onClick }) {
   return (
     <button
@@ -86,14 +100,14 @@ function StepHeader({ step, current }) {
   const active = step.id === current;
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-      <div style={{
+      <div className="af-step-circle" style={{
         width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
         background: active ? YELLOW : done ? "#333" : LIGHT,
         color: active ? BLACK : done ? "white" : GRAY,
         fontSize: active ? 16 : 14, fontWeight: 700, border: `2px solid ${active ? "#c8dc00" : done ? "#333" : BORDER}`,
         transition: "all 0.2s",
       }}>{done ? "✓" : step.icon}</div>
-      <span style={{ fontSize: 11, color: active ? BLACK : GRAY, fontWeight: active ? 700 : 400 }}>{step.label}</span>
+      <span className="af-step-label" style={{ fontSize: 11, color: active ? BLACK : GRAY, fontWeight: active ? 700 : 400 }}>{step.label}</span>
     </div>
   );
 }
@@ -119,16 +133,6 @@ function SummarySection({ title, children }) {
 }
 
 function Summary({ data }) {
-  const download = () => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `avenger-${(data.nombre || "onboarding").replace(/\s+/g, "-").toLowerCase()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div>
       <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Resumen</h2>
@@ -184,16 +188,6 @@ function Summary({ data }) {
           <span style={{ color: GRAY, fontSize: 14 }}>—</span>
         )}
       </SummarySection>
-
-      <button
-        onClick={download}
-        style={{
-          background: YELLOW, color: BLACK, border: "none",
-          padding: "14px 32px", borderRadius: 8, fontSize: 15, fontWeight: 800, cursor: "pointer",
-        }}
-      >
-        Descargar datos (JSON) →
-      </button>
     </div>
   );
 }
@@ -298,7 +292,7 @@ export default function AvengersForm() {
             <AudioRecorder audio={form.audio} onChange={setVal("audio")} />
           </Field>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="af-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <Field label="Estilos de edición que te gustan" hint="Links a videos o describe el estilo">
               <Input value={form.edicionSi} onChange={set("edicionSi")} multiline rows={3} placeholder="Ej: cortes rápidos, subtítulos grandes, B-roll dinámico..." />
             </Field>
@@ -393,16 +387,17 @@ export default function AvengersForm() {
 
   return (
     <div style={{ minHeight: "100vh", background: LIGHT, fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", padding: "0 0 60px 0" }}>
+      <style>{RESPONSIVE_CSS}</style>
       {/* Header */}
-      <div style={{ background: BLACK, padding: "14px 28px", display: "flex", alignItems: "center", gap: 16 }}>
+      <div className="af-header" style={{ background: BLACK, padding: "14px 28px", display: "flex", alignItems: "center", gap: 16 }}>
         <span style={{ fontWeight: 900, fontSize: 18, color: YELLOW }}>30X</span>
         <div style={{ width: 1, height: 20, background: "#444" }} />
         <span style={{ color: "#888", fontSize: 13 }}>Onboarding · Programa Avengers</span>
       </div>
 
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "0 20px" }}>
+      <div className="af-container" style={{ maxWidth: 680, margin: "0 auto", padding: "0 20px" }}>
         {/* Step indicator */}
-        <div style={{ padding: "28px 0 24px", display: "flex", justifyContent: "center", gap: 24, position: "relative" }}>
+        <div className="af-steps" style={{ padding: "28px 0 24px", display: "flex", justifyContent: "center", gap: 24, position: "relative" }}>
           <div style={{
             position: "absolute", top: 46, left: "12%", right: "12%", height: 2,
             background: `linear-gradient(to right, ${BLACK} ${(currentIdx / (steps.length - 1)) * 100}%, ${BORDER} ${(currentIdx / (steps.length - 1)) * 100}%)`,
@@ -411,14 +406,14 @@ export default function AvengersForm() {
         </div>
 
         {/* Form card */}
-        <div style={{ background: "white", borderRadius: 16, padding: "32px 32px 28px", boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: `1px solid ${BORDER}` }}>
+        <div className="af-card" style={{ background: "white", borderRadius: 16, padding: "32px 32px 28px", boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: `1px solid ${BORDER}` }}>
           {renderStep()}
         </div>
 
         {/* Navigation */}
         {current !== "resumen" && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
-            <button onClick={prev} disabled={currentIdx === 0} style={{
+          <div className="af-nav" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
+            <button className="af-nav-btn" onClick={prev} disabled={currentIdx === 0} style={{
               padding: "12px 24px", borderRadius: 8, border: `1.5px solid ${BORDER}`,
               background: "white", cursor: currentIdx === 0 ? "not-allowed" : "pointer",
               fontSize: 14, color: currentIdx === 0 ? GRAY : BLACK, fontWeight: 600,
@@ -426,7 +421,7 @@ export default function AvengersForm() {
 
             <span style={{ fontSize: 12, color: GRAY }}>{currentIdx + 1} de {steps.length}</span>
 
-            <button onClick={next} style={{
+            <button className="af-nav-btn" onClick={next} style={{
               padding: "12px 28px", borderRadius: 8, border: "none",
               background: YELLOW, cursor: "pointer", fontSize: 14, color: BLACK, fontWeight: 800,
             }}>
