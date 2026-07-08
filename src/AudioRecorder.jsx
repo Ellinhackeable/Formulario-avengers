@@ -15,6 +15,12 @@ function extensionFor(mimeType) {
   return "webm";
 }
 
+// Safari/iOS reports mimeTypes like "audio/mp4;codecs=mp4a.40.2" — Blob
+// content-type allowlists match on the base type only, so strip params.
+function baseMimeType(mimeType) {
+  return mimeType.split(";")[0].trim();
+}
+
 export default function AudioRecorder({ audio, onChange }) {
   const [recording, setRecording] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -59,7 +65,7 @@ export default function AudioRecorder({ audio, onChange }) {
       const ext = extensionFor(blob.type);
       const result = await uploadPresigned(`audio-presentacion-${crypto.randomUUID()}.${ext}`, blob, {
         access: "public",
-        contentType: blob.type,
+        contentType: baseMimeType(blob.type),
         handleUploadUrl: "/api/upload",
       });
       onChange({ url: result.url });
